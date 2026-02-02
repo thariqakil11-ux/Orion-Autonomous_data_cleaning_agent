@@ -67,7 +67,14 @@ async def process_file(file: UploadFile = File(...), db: Session = Depends(get_d
     outputs = run_pipeline(file_path, OUTPUT_DIR)
 
     # Save to history
-    stats = outputs.get("summary_stats", {})
+    stats_file = outputs.get("summary_stats")
+    stats = {}
+    if stats_file:
+        stats_path = os.path.join(OUTPUT_DIR, stats_file)
+        if os.path.exists(stats_path):
+            with open(stats_path, "r", encoding="utf-8") as f:
+                stats = json.load(f)
+
     new_analysis = models.AnalysisHistory(
         filename=file.filename,
         health_score=stats.get("overview", {}).get("healthScore", 0),
@@ -75,7 +82,7 @@ async def process_file(file: UploadFile = File(...), db: Session = Depends(get_d
         columns=stats.get("overview", {}).get("columns", 0),
         cleaned_data_path=outputs.get("cleaned_data"),
         eda_report_path=outputs.get("eda_report"),
-        summary_stats_path=outputs.get("summary_stats_file"),
+        summary_stats_path=outputs.get("summary_stats"),
         business_summary_path=outputs.get("business_summary"),
         summary_json=stats
     )

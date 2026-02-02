@@ -170,12 +170,45 @@ const Dashboard = () => {
     { icon: Sparkles, title: 'Smart Reports', description: 'Beautiful HTML reports with detailed data quality metrics and visualizations.' },
   ];
 
+  interface VisibilitySettings {
+    showInsights: boolean;
+    showCleanedData: boolean;
+    showEDA: boolean;
+  }
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [visibilitySettings, setVisibilitySettings] = useState<VisibilitySettings>({
+    showInsights: true,
+    showCleanedData: true,
+    showEDA: true,
+  });
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light';
+    if (savedTheme) setTheme(savedTheme);
+
+    const savedVisibility = localStorage.getItem('visibilitySettings');
+    if (savedVisibility) setVisibilitySettings(JSON.parse(savedVisibility));
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
+  const toggleVisibility = (key: keyof VisibilitySettings) => {
+    const newSettings = { ...visibilitySettings, [key]: !visibilitySettings[key] };
+    setVisibilitySettings(newSettings);
+    localStorage.setItem('visibilitySettings', JSON.stringify(newSettings));
+  };
+
   const isDataAvailable = cleanedDataFile || businessSummary || edaHtml || summaryStats;
 
   return (
-    <div className="min-h-screen bg-[#05050a] text-slate-200 font-sans selection:bg-purple-500/30 overflow-x-hidden">
+    <div className={`min-h-screen transition-colors duration-300 font-sans selection:bg-purple-500/30 overflow-x-hidden ${theme === 'light' ? 'light bg-slate-50 text-slate-900' : 'bg-[#05050a] text-slate-200'}`}>
       {/* Background Layers */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
+      <div className={`fixed inset-0 pointer-events-none -z-10 transition-opacity duration-500 ${theme === 'light' ? 'opacity-0' : 'opacity-100'}`}>
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${cosmicBg})` }}
@@ -189,13 +222,13 @@ const Dashboard = () => {
       </div>
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-full bg-[#080810]/80 backdrop-blur-xl border-r border-white/5 transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+      <aside className={`fixed left-0 top-0 h-full backdrop-blur-xl border-r transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'} ${theme === 'light' ? 'bg-white/80 border-slate-200' : 'bg-[#080810]/80 border-white/5'}`}>
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
             <Database size={18} className="text-white" />
           </div>
           {isSidebarOpen && (
-            <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 font-[Orbitron]">
+            <span className={`font-bold text-lg tracking-tight font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400'}`}>
               ORION
             </span>
           )}
@@ -210,9 +243,9 @@ const Dashboard = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${activeTab === item.id ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${activeTab === item.id ? (theme === 'light' ? 'bg-purple-500/10 text-purple-600 border border-purple-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20') : (theme === 'light' ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5')}`}
             >
-              <item.icon size={20} className={activeTab === item.id ? 'text-purple-400' : 'group-hover:text-purple-400 transition-colors'} />
+              <item.icon size={20} className={activeTab === item.id ? (theme === 'light' ? 'text-purple-600' : 'text-purple-400') : 'group-hover:text-purple-400 transition-colors'} />
               {isSidebarOpen && <span className="font-medium">{item.label}</span>}
             </button>
           ))}
@@ -221,7 +254,7 @@ const Dashboard = () => {
         <div className="absolute bottom-8 left-0 w-full px-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 hover:text-destructive hover:bg-destructive/5 transition-all"
+            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${theme === 'light' ? 'text-slate-500 hover:text-red-600 hover:bg-red-50' : 'text-slate-500 hover:text-destructive hover:bg-destructive/5'}`}
           >
             <LogOut size={20} />
             {isSidebarOpen && <span className="font-medium">Sign Out</span>}
@@ -232,31 +265,31 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className={`transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-20'}`}>
         {/* Header */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 bg-[#05050a]/60 backdrop-blur-md z-40">
+        <header className={`h-20 border-b flex items-center justify-between px-8 sticky top-0 backdrop-blur-md z-40 ${theme === 'light' ? 'bg-white/60 border-slate-200' : 'bg-[#05050a]/60 border-white/5'}`}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-all active:scale-95"
+              className={`p-2 rounded-lg transition-all active:scale-95 ${theme === 'light' ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-white/5 text-slate-400'}`}
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-xl font-semibold text-white font-[Orbitron] tracking-wide">
+            <h1 className={`text-xl font-semibold font-[Orbitron] tracking-wide ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
               {isDataAvailable ? 'Business Insights Report' : 'Data Command Center'}
             </h1>
           </div>
 
           <div className="flex items-center gap-6">
             {summaryStats && (
-              <div className="text-right hidden md:block border-r border-white/10 pr-6">
+              <div className={`text-right hidden md:block border-r pr-6 ${theme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
                 <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Last Analysis</p>
-                <p className="text-xs text-purple-400 font-mono">{summaryStats.overview.processedOn}</p>
+                <p className={`text-xs font-mono ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`}>{summaryStats.overview.processedOn}</p>
               </div>
             )}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 flex items-center justify-center">
-                <span className="text-xs font-bold text-purple-400">{username.charAt(0).toUpperCase()}</span>
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center ${theme === 'light' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-gradient-to-br from-purple-500/20 to-blue-500/20 border-purple-500/30'}`}>
+                <span className={`text-xs font-bold ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`}>{username.charAt(0).toUpperCase()}</span>
               </div>
-              <span className="text-sm font-medium text-slate-300 hidden sm:block">{username}</span>
+              <span className={`text-sm font-medium hidden sm:block ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{username}</span>
             </div>
           </div>
         </header>
@@ -268,16 +301,16 @@ const Dashboard = () => {
                 <div className="space-y-16 animate-fade-in">
                   {/* Hero for initial state */}
                   <div className="text-center space-y-6 pt-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4">
+                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-4 ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'}`}>
                       <Star size={14} className="text-purple-400 fill-purple-400" />
                       <span className="text-sm text-slate-400 tracking-wide">Autonomous Data Cleaning Agent</span>
                     </div>
                     <h1 className="text-5xl md:text-7xl font-bold font-[Orbitron] tracking-tight">
-                      <span className="text-white">Transform Your Data</span>
+                      <span className={theme === 'light' ? 'text-slate-900' : 'text-white'}>Transform Your Data</span>
                       <br />
                       <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500">With Cosmic Precision</span>
                     </h1>
-                    <p className="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                    <p className={`max-w-2xl mx-auto text-lg leading-relaxed ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
                       Upload your dataset and let Orion's specialized agents handle cleaning,
                       outlier correction, and high-level business analysis automatically.
                     </p>
@@ -295,6 +328,7 @@ const Dashboard = () => {
                         title={feature.title}
                         description={feature.description}
                         delay={index * 100}
+                        theme={theme}
                       />
                     ))}
                   </div>
@@ -308,25 +342,102 @@ const Dashboard = () => {
               )}
 
               {isDataAvailable && !isProcessing && (
-                <ResultsDisplay
-                  cleanedDataFile={cleanedDataFile}
-                  businessSummary={businessSummary}
-                  edaHtml={edaHtml}
-                  summaryStats={summaryStats}
-                  onDownload={handleDownload}
-                />
+                <div className={theme === 'light' ? 'text-slate-900' : ''}>
+                  <ResultsDisplay
+                    cleanedDataFile={cleanedDataFile}
+                    businessSummary={businessSummary}
+                    edaHtml={edaHtml}
+                    summaryStats={summaryStats}
+                    onDownload={handleDownload}
+                    theme={theme}
+                    visibility={visibilitySettings}
+                  />
+                </div>
               )}
             </>
           ) : activeTab === 'history' ? (
             <HistoryView
               history={history}
               onReload={handleReloadHistory}
+              theme={theme}
             />
           ) : (
-            <div className="text-center py-24 text-slate-500">
-              <Settings className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <h2 className="text-xl font-bold font-[Orbitron]">Settings</h2>
-              <p>Configure your Orion preferences here.</p>
+            <div className={`p-8 rounded-2xl border backdrop-blur-sm animate-fade-in ${theme === 'light' ? 'bg-white border-slate-200 shadow-xl shadow-slate-200/50' : 'bg-white/5 border-white/5'}`}>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-purple-500/10 rounded-2xl">
+                  <Settings className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className={`text-2xl font-bold font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Settings</h2>
+                  <p className="text-sm text-slate-500">Manage your account and app preferences</p>
+                </div>
+              </div>
+
+              <div className="space-y-12">
+                <section>
+                  <h3 className={`text-sm font-semibold uppercase tracking-widest mb-4 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Appearance</h3>
+                  <div className={`p-6 rounded-xl border flex items-center justify-between ${theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'}`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg ${theme === 'light' ? 'bg-white text-slate-900' : 'bg-[#080810] text-purple-400 border border-purple-500/20'}`}>
+                        {theme === 'dark' ? <Zap size={18} /> : <Sparkles size={18} />}
+                      </div>
+                      <div>
+                        <p className={`font-medium ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Interface Theme</p>
+                        <p className="text-sm text-slate-500">Switch between light and dark mode</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={toggleTheme}
+                      className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center gap-2 ${theme === 'light' ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/20' : 'bg-white text-black hover:bg-slate-200'}`}
+                    >
+                      {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                      <RefreshCcw size={14} className={theme === 'dark' ? '' : 'rotate-180'} />
+                    </button>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className={`text-sm font-semibold uppercase tracking-widest mb-4 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Content Preferences</h3>
+                  <div className={`rounded-xl border divide-y ${theme === 'light' ? 'bg-slate-50 border-slate-200 divide-slate-200' : 'bg-white/5 border-white/5 divide-white/5'}`}>
+                    {[
+                      { key: 'showInsights', label: 'Business Analysis', description: 'Show risks, opportunities, and pipeline recommendations' },
+                      { key: 'showCleanedData', label: 'Cleaned Data Log', description: 'Show the engineering table with missing values and outliers' },
+                      { key: 'showEDA', label: 'EDA Report', description: 'Show the comprehensive Exploratory Data Analysis report' },
+                    ].map((item) => (
+                      <div key={item.key} className="p-6 flex items-center justify-between">
+                        <div>
+                          <p className={`font-medium ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{item.label}</p>
+                          <p className="text-sm text-slate-500">{item.description}</p>
+                        </div>
+                        <button
+                          onClick={() => toggleVisibility(item.key as any)}
+                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${visibilitySettings[item.key as keyof VisibilitySettings] ? 'bg-purple-500' : (theme === 'light' ? 'bg-slate-200' : 'bg-slate-800')}`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${visibilitySettings[item.key as keyof VisibilitySettings] ? 'translate-x-5' : 'translate-x-0'}`}
+                          />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className={`text-sm font-semibold uppercase tracking-widest mb-4 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Account Profile</h3>
+                  <div className={`p-6 rounded-xl border ${theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'}`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full border flex items-center justify-center text-xl font-bold ${theme === 'light' ? 'bg-white border-slate-200 text-purple-600' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'}`}>
+                        {username.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className={`font-bold text-lg ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{username}</p>
+                        <p className="text-sm text-slate-500 italic">Connected to Orion Data Pipeline</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
             </div>
           )}
 
@@ -341,5 +452,6 @@ const Dashboard = () => {
     </div>
   );
 };
+
 
 export default Dashboard;

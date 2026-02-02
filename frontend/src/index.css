@@ -79,6 +79,33 @@
     --chart-5: 45 95% 60%;
   }
 
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 265 90% 65%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 10% 90%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 10% 95%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 20% 90%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
+    --ring: 265 90% 65%;
+
+    /* Light mode glass overrides */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 222 47% 11% / 0.1;
+    --glass-highlight: 222 47% 11% / 0.05;
+  }
+
   .dark {
     --background: 240 30% 3%;
     --foreground: 220 20% 95%;

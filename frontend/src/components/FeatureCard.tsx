@@ -6,16 +6,18 @@ interface FeatureCardProps {
   title: string;
   description: string;
   delay?: number;
+  theme?: 'light' | 'dark';
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ 
-  icon: Icon, 
-  title, 
-  description, 
-  delay = 0 
+const FeatureCard: React.FC<FeatureCardProps> = ({
+  icon: Icon,
+  title,
+  description,
+  delay = 0,
+  theme = 'dark'
 }) => {
   return (
-    <div 
+    <div
       className="glass-card p-6 group hover:border-primary/30 transition-all duration-300 animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
