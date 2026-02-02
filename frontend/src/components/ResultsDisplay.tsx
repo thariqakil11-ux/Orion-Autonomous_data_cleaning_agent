@@ -10,6 +10,7 @@ import {
     Database,
     CheckCircle2
 } from 'lucide-react';
+import orionLogo from '../assets/orion-logo.png';
 import { RiskCard, OpportunityCard, PipelineCard } from './InsightCards';
 
 interface SummaryStats {
@@ -107,7 +108,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     <div className={`border rounded-2xl overflow-hidden backdrop-blur-xl ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#080810]/40 border-white/5'}`}>
                         <div className={`p-6 border-b flex justify-between items-center ${theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'}`}>
                             <div className="flex items-center gap-3">
-                                <Database size={18} className="text-purple-400" />
+                                <div className="w-6 h-6 overflow-hidden rounded-md">
+                                    <img src={orionLogo} alt="Orion" className="w-full h-full object-cover" />
+                                </div>
                                 <h2 className={`text-lg font-semibold font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Data Engineering Log</h2>
                             </div>
                             <span className="text-[10px] font-mono text-purple-400 bg-purple-400/10 px-2 py-1 rounded font-bold">QUALITY_METRICS_V2</span>

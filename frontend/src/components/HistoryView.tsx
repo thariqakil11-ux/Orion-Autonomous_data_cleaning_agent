@@ -1,4 +1,4 @@
-import React from 'react';
+import orionLogo from '../assets/orion-logo.png';
 import { Clock, Database, ShieldCheck, ArrowRight, FileText } from 'lucide-react';
 
 interface HistoryViewProps {
@@ -32,8 +32,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ history, onReload, theme = 'd
                         >
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
-                                        <Database size={24} />
+                                    <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform overflow-hidden">
+                                        <img src={orionLogo} alt="Orion" className="w-6 h-6 object-cover" />
                                     </div>
                                     <div>
                                         <h3 className={`text-lg font-bold mb-1 group-hover:text-purple-400 transition-colors font-mono ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{item.filename}</h3>

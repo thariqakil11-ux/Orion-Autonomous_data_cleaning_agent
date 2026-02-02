@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, User, Lock, LogIn, AlertCircle } from 'lucide-react';
 import cosmicBg from '@/assets/cosmic-bg.jpg';
+import orionLogo from '@/assets/orion-logo.png';
 import StarField from '@/components/StarField';
 import OrionConstellation from '@/components/OrionConstellation';
 
@@ -61,8 +62,8 @@ const Login = () => {
         <div className="glass-card p-8 md:p-10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="p-3 rounded-xl bg-primary/20 animate-pulse-glow mb-4">
-              <Sparkles className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 mb-4 overflow-hidden rounded-xl animate-pulse-glow">
+              <img src={orionLogo} alt="Orion Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-2xl font-bold gradient-text font-[Orbitron]">Orion</h1>
             <p className="text-sm text-muted-foreground mt-2">Autonomous Data Cleaning Agent</p>

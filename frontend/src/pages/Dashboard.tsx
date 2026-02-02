@@ -16,7 +16,8 @@ import {
   Settings,
   ChevronDown
 } from 'lucide-react';
-import cosmicBg from '@/assets/cosmic-bg.jpg';
+import cosmicBg from '../assets/cosmic-bg.jpg';
+import orionLogo from '../assets/orion-logo.png';
 import StarField from '@/components/StarField';
 import OrionConstellation from '@/components/OrionConstellation';
 import FileUploader from '@/components/FileUploader';
@@ -224,8 +225,8 @@ const Dashboard = () => {
       {/* Sidebar */}
       <aside className={`fixed left-0 top-0 h-full backdrop-blur-xl border-r transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'} ${theme === 'light' ? 'bg-white/80 border-slate-200' : 'bg-[#080810]/80 border-white/5'}`}>
         <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <Database size={18} className="text-white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+            <img src={orionLogo} alt="Orion Logo" className="w-full h-full object-cover" />
           </div>
           {isSidebarOpen && (
             <span className={`font-bold text-lg tracking-tight font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400'}`}>
