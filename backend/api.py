@@ -6,13 +6,34 @@ import os
 import json
 
 from autonomous_data_cleaning_agent_backend import run_pipeline
+from config import settings
+from pydantic import BaseModel
+from database import engine, get_db, SessionLocal
+import models
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+# Create tables
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/login")
+async def login(request: LoginRequest):
+    if request.username == settings.APP_USERNAME and request.password == settings.APP_PASSWORD:
+        return {"status": "success", "username": request.username}
+    raise HTTPException(status_code=401, detail="Invalid username or password")
+
 app.add_middleware(
+
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "http://localhost:5173",
         "http://localhost:8080",
         "http://127.0.0.1:8080",
     ],
@@ -37,7 +58,7 @@ VIEWABLE_EXTENSIONS = {
 
 
 @app.post("/process")
-async def process_file(file: UploadFile = File(...)):
+async def process_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
 
     with open(file_path, "wb") as buffer:
@@ -45,9 +66,27 @@ async def process_file(file: UploadFile = File(...)):
 
     outputs = run_pipeline(file_path, OUTPUT_DIR)
 
+    # Save to history
+    stats = outputs.get("summary_stats", {})
+    new_analysis = models.AnalysisHistory(
+        filename=file.filename,
+        health_score=stats.get("overview", {}).get("healthScore", 0),
+        rows=stats.get("overview", {}).get("rows", 0),
+        columns=stats.get("overview", {}).get("columns", 0),
+        cleaned_data_path=outputs.get("cleaned_data"),
+        eda_report_path=outputs.get("eda_report"),
+        summary_stats_path=outputs.get("summary_stats_file"),
+        business_summary_path=outputs.get("business_summary"),
+        summary_json=stats
+    )
+    db.add(new_analysis)
+    db.commit()
+    db.refresh(new_analysis)
+
     return {
         "message": "Processing complete",
-        "outputs": outputs
+        "outputs": outputs,
+        "id": new_analysis.id
     }
 
 
@@ -95,3 +134,9 @@ def download_file(file_name: str):
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(file_path, filename=file_name)
+
+
+@app.get("/history")
+def list_history(db: Session = Depends(get_db)):
+    history = db.query(models.AnalysisHistory).order_by(models.AnalysisHistory.timestamp.desc()).all()
+    return history

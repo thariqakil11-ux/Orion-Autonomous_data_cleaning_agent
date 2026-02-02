@@ -1,14 +1,30 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Zap, Shield, BarChart3, Wand2, Database, LogOut, Star } from 'lucide-react';
+import {
+  Sparkles,
+  Zap,
+  Shield,
+  BarChart3,
+  Wand2,
+  Database,
+  LogOut,
+  Star,
+  Menu,
+  LayoutDashboard,
+  FileText,
+  RefreshCcw,
+  Settings,
+  ChevronDown
+} from 'lucide-react';
 import cosmicBg from '@/assets/cosmic-bg.jpg';
 import StarField from '@/components/StarField';
 import OrionConstellation from '@/components/OrionConstellation';
 import FileUploader from '@/components/FileUploader';
-import OutputList from '@/components/OutputList';
+import ResultsDisplay from '@/components/ResultsDisplay';
 import FileViewer from '@/components/FileViewer';
 import ProcessingProgress from '@/components/ProcessingProgress';
 import FeatureCard from '@/components/FeatureCard';
+import HistoryView from '@/components/HistoryView';
 
 interface OutputFile {
   name: string;
@@ -16,11 +32,48 @@ interface OutputFile {
   type: string;
 }
 
-// API Configuration - Change this to your backend URL
+// API Configuration
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'settings'>('dashboard');
+  const [history, setHistory] = useState<any[]>([]);
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/history');
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchHistory();
+    }
+  }, [activeTab]);
+
+  const handleReloadHistory = (analysis: any) => {
+    setCleanedDataFile(analysis.cleaned_data_path);
+    setBusinessSummary(null); // We might need to fetch this or handle it
+    setEdaHtml(null); // We need to fetch the HTML content
+    setSummaryStats(analysis.summary_json);
+    setActiveTab('dashboard');
+
+    // Fetch EDA HTML and Business Summary if needed
+    if (analysis.eda_report_path) {
+      fetch(`http://127.0.0.1:8000/view/${analysis.eda_report_path}`)
+        .then(res => res.text())
+        .then(html => setEdaHtml(html));
+    }
+    // We can add logic to fetch business summary too
+  };
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputs, setOutputs] = useState<OutputFile[]>([]);
   const [viewingFile, setViewingFile] = useState<{
@@ -31,8 +84,13 @@ const Dashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string>('');
 
+  // Results State
+  const [cleanedDataFile, setCleanedDataFile] = useState<string | null>(null);
+  const [businessSummary, setBusinessSummary] = useState<string | null>(null);
+  const [edaHtml, setEdaHtml] = useState<string | null>(null);
+  const [summaryStats, setSummaryStats] = useState<any>(null);
+
   useEffect(() => {
-    // Check authentication
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     const storedUsername = localStorage.getItem('username');
 
@@ -54,6 +112,10 @@ const Dashboard = () => {
     setIsProcessing(true);
     setError(null);
     setOutputs([]);
+    setSummaryStats(null);
+    setCleanedDataFile(null);
+    setBusinessSummary(null);
+    setEdaHtml(null);
 
     try {
       const formData = new FormData();
@@ -68,11 +130,25 @@ const Dashboard = () => {
         throw new Error('Processing failed. Please check if the backend is running.');
       }
 
-      // Fetch the outputs list
       const outputsResponse = await fetch(`${API_BASE_URL}/outputs`);
       if (outputsResponse.ok) {
         const outputsData = await outputsResponse.json();
         setOutputs(outputsData);
+
+        for (const output of outputsData) {
+          if (output.name.includes('cleaned_data')) {
+            setCleanedDataFile(output.name);
+          } else if (output.name.includes('business_summary')) {
+            const res = await fetch(`${API_BASE_URL}/view/${output.name}`);
+            if (res.ok) setBusinessSummary(await res.text());
+          } else if (output.name.includes('eda_report')) {
+            const res = await fetch(`${API_BASE_URL}/view/${output.name}?t=${Date.now()}`);
+            if (res.ok) setEdaHtml(await res.text());
+          } else if (output.name.includes('summary_stats.json')) {
+            const res = await fetch(`${API_BASE_URL}/view/${output.name}`);
+            if (res.ok) setSummaryStats(await res.json());
+          }
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -81,235 +157,187 @@ const Dashboard = () => {
     }
   }, []);
 
-  const handleView = useCallback(async (fileName: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/view/${fileName}`);
-      if (!response.ok) throw new Error('Failed to load file');
-
-      const contentType = response.headers.get('content-type') || '';
-      let content: string | object;
-      let type = 'text';
-
-      if (contentType.includes('application/json')) {
-        content = await response.json();
-        type = 'json';
-      } else if (contentType.includes('text/html')) {
-        content = await response.text();
-        type = 'html';
-      } else {
-        content = await response.text();
-        type = 'text';
-      }
-
-      setViewingFile({ name: fileName, content, type });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to view file');
-    }
-  }, []);
-
   const handleDownload = useCallback((fileName: string) => {
     window.open(`${API_BASE_URL}/download/${fileName}`, '_blank');
   }, []);
 
   const features = [
-    {
-      icon: Wand2,
-      title: 'AI-Powered Cleaning',
-      description: 'Intelligent detection and handling of missing values, duplicates, and inconsistencies.'
-    },
-    {
-      icon: Shield,
-      title: 'Outlier Detection',
-      description: 'Advanced statistical methods to identify and handle data outliers automatically.'
-    },
-    {
-      icon: BarChart3,
-      title: 'Business Insights',
-      description: 'Generate actionable insights and recommendations from your cleaned data.'
-    },
-    {
-      icon: Zap,
-      title: 'Lightning Fast',
-      description: 'Process large datasets in seconds with our optimized cleaning pipeline.'
-    },
-    {
-      icon: Database,
-      title: 'Multi-Format Support',
-      description: 'Support for CSV, Excel, JSON and more data formats out of the box.'
-    },
-    {
-      icon: Sparkles,
-      title: 'Smart Reports',
-      description: 'Beautiful HTML reports with detailed data quality metrics and visualizations.'
-    },
+    { icon: Wand2, title: 'AI-Powered Cleaning', description: 'Intelligent detection and handling of missing values, duplicates, and inconsistencies.' },
+    { icon: Shield, title: 'Outlier Detection', description: 'Advanced statistical methods to identify and handle data outliers automatically.' },
+    { icon: BarChart3, title: 'Business Insights', description: 'Generate actionable insights and recommendations from your cleaned data.' },
+    { icon: Zap, title: 'Lightning Fast', description: 'Process large datasets in seconds with our optimized cleaning pipeline.' },
+    { icon: Database, title: 'Multi-Format Support', description: 'Support for CSV, Excel, JSON and more data formats out of the box.' },
+    { icon: Sparkles, title: 'Smart Reports', description: 'Beautiful HTML reports with detailed data quality metrics and visualizations.' },
   ];
 
-  return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background layers */}
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${cosmicBg})` }}
-      />
-      <div className="fixed inset-0 bg-background/70" />
-      <StarField starCount={100} />
-      <OrionConstellation className="opacity-40" />
+  const isDataAvailable = cleanedDataFile || businessSummary || edaHtml || summaryStats;
 
-      {/* Content */}
-      <div className="relative z-10">
+  return (
+    <div className="min-h-screen bg-[#05050a] text-slate-200 font-sans selection:bg-purple-500/30 overflow-x-hidden">
+      {/* Background Layers */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url(${cosmicBg})` }}
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-[#05050a]/50 to-[#05050a]" />
+        <StarField starCount={80} />
+
+        {/* Glows */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full" />
+        <div className="absolute top-1/2 -right-24 w-80 h-80 bg-blue-600/10 blur-[100px] rounded-full" />
+      </div>
+
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-0 h-full bg-[#080810]/80 backdrop-blur-xl border-r border-white/5 transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Database size={18} className="text-white" />
+          </div>
+          {isSidebarOpen && (
+            <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 font-[Orbitron]">
+              ORION
+            </span>
+          )}
+        </div>
+
+        <nav className="mt-8 px-4 space-y-2">
+          {[
+            { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+            { id: 'history', icon: FileText, label: 'History' },
+            { id: 'settings', icon: Settings, label: 'Settings' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id as any)}
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${activeTab === item.id ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+            >
+              <item.icon size={20} className={activeTab === item.id ? 'text-purple-400' : 'group-hover:text-purple-400 transition-colors'} />
+              {isSidebarOpen && <span className="font-medium">{item.label}</span>}
+            </button>
+          ))}
+        </nav>
+
+        <div className="absolute bottom-8 left-0 w-full px-4">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 hover:text-destructive hover:bg-destructive/5 transition-all"
+          >
+            <LogOut size={20} />
+            {isSidebarOpen && <span className="font-medium">Sign Out</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={`transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-20'}`}>
         {/* Header */}
-        <header className="border-b border-border/50 backdrop-blur-glass">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20 animate-pulse-glow">
-                <Sparkles className="w-6 h-6 text-primary" />
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 bg-[#05050a]/60 backdrop-blur-md z-40">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-all active:scale-95"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="text-xl font-semibold text-white font-[Orbitron] tracking-wide">
+              {isDataAvailable ? 'Business Insights Report' : 'Data Command Center'}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {summaryStats && (
+              <div className="text-right hidden md:block border-r border-white/10 pr-6">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Last Analysis</p>
+                <p className="text-xs text-purple-400 font-mono">{summaryStats.overview.processedOn}</p>
               </div>
-              <span className="text-xl font-bold gradient-text font-[Orbitron]">Orion</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                Welcome, <span className="text-foreground font-medium">{username}</span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="btn-glass flex items-center gap-2 text-sm hover:border-destructive/50 hover:text-destructive transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 flex items-center justify-center">
+                <span className="text-xs font-bold text-purple-400">{username.charAt(0).toUpperCase()}</span>
+              </div>
+              <span className="text-sm font-medium text-slate-300 hidden sm:block">{username}</span>
             </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <section className="py-16 md:py-24 relative">
-          <div className="container mx-auto px-4 text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-fade-in">
-              <Star className="w-4 h-4 text-primary fill-primary" />
-              <span className="text-sm text-muted-foreground">Autonomous Data Cleaning Agent</span>
-            </div>
-
-            {/* Main heading */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in font-[Orbitron]" style={{ animationDelay: '100ms' }}>
-              <span className="text-foreground">Transform Your Data</span>
-              <br />
-              <span className="gradient-text text-glow">With Cosmic Precision</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in" style={{ animationDelay: '200ms' }}>
-              Harness the power of AI to clean, analyze, and unlock insights from your data.
-              Let our autonomous agents handle the complexity while you focus on what matters.
-            </p>
-
-            {/* File Uploader */}
-            <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-              <FileUploader onFileSelect={handleFileSelect} isProcessing={isProcessing} />
-            </div>
-
-            {/* Processing Progress */}
-            <ProcessingProgress isProcessing={isProcessing} />
-
-            {/* Error Display */}
-            {error && (
-              <div className="mt-6 p-4 glass-card border-destructive/50 max-w-2xl mx-auto animate-fade-in">
-                <p className="text-destructive">{error}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Make sure your backend server is running at {API_BASE_URL}
-                </p>
-              </div>
-            )}
-
-            {/* Output List */}
-            <OutputList
-              outputs={outputs}
-              onView={handleView}
-              onDownload={handleDownload}
-            />
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-16 relative">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4 font-[Orbitron]">
-                Stellar Features
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Everything you need to transform messy data into clean, actionable insights
-              </p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {features.map((feature, index) => (
-                <FeatureCard
-                  key={feature.title}
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                  delay={index * 100}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="py-16 relative">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4 font-[Orbitron]">
-                How It Works
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Three simple steps to clean, analyze, and export your data
-              </p>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 max-w-4xl mx-auto">
-              {[
-                { step: '01', title: 'Upload', desc: 'Drop your data file' },
-                { step: '02', title: 'Process', desc: 'AI cleans & analyzes' },
-                { step: '03', title: 'Download', desc: 'Get clean data + insights' },
-              ].map((item, index) => (
-                <div key={item.step} className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
-                  <div className="glass-card p-6 text-center min-w-[200px] hover:border-primary/30 transition-all duration-300 group">
-                    <div className="text-4xl font-bold gradient-text mb-2 font-[Orbitron] group-hover:text-glow transition-all">
-                      {item.step}
+        <div className="p-8 max-w-7xl mx-auto space-y-12">
+          {activeTab === 'dashboard' ? (
+            <>
+              {!isDataAvailable && !isProcessing && (
+                <div className="space-y-16 animate-fade-in">
+                  {/* Hero for initial state */}
+                  <div className="text-center space-y-6 pt-12">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4">
+                      <Star size={14} className="text-purple-400 fill-purple-400" />
+                      <span className="text-sm text-slate-400 tracking-wide">Autonomous Data Cleaning Agent</span>
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    <h1 className="text-5xl md:text-7xl font-bold font-[Orbitron] tracking-tight">
+                      <span className="text-white">Transform Your Data</span>
+                      <br />
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500">With Cosmic Precision</span>
+                    </h1>
+                    <p className="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                      Upload your dataset and let Orion's specialized agents handle cleaning,
+                      outlier correction, and high-level business analysis automatically.
+                    </p>
+                    <div className="pt-8">
+                      <FileUploader onFileSelect={handleFileSelect} isProcessing={isProcessing} />
+                    </div>
                   </div>
-                  {index < 2 && (
-                    <div className="hidden md:block text-primary text-2xl">→</div>
-                  )}
+
+                  {/* Features Grid */}
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {features.map((feature, index) => (
+                      <FeatureCard
+                        key={feature.title}
+                        icon={feature.icon}
+                        title={feature.title}
+                        description={feature.description}
+                        delay={index * 100}
+                      />
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {isProcessing && (
+                <div className="py-24">
+                  <ProcessingProgress isProcessing={isProcessing} />
+                </div>
+              )}
+
+              {isDataAvailable && !isProcessing && (
+                <ResultsDisplay
+                  cleanedDataFile={cleanedDataFile}
+                  businessSummary={businessSummary}
+                  edaHtml={edaHtml}
+                  summaryStats={summaryStats}
+                  onDownload={handleDownload}
+                />
+              )}
+            </>
+          ) : activeTab === 'history' ? (
+            <HistoryView
+              history={history}
+              onReload={handleReloadHistory}
+            />
+          ) : (
+            <div className="text-center py-24 text-slate-500">
+              <Settings className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <h2 className="text-xl font-bold font-[Orbitron]">Settings</h2>
+              <p>Configure your Orion preferences here.</p>
             </div>
-          </div>
-        </section>
+          )}
 
-        {/* Footer */}
-        <footer className="py-8 border-t border-border/50 backdrop-blur-glass">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Built with <span className="text-primary">✦</span> by Orion • Autonomous Data Cleaning Agent
-            </p>
-          </div>
-        </footer>
-      </div>
-
-      {/* File Viewer Modal */}
-      {viewingFile && (
-        <FileViewer
-          fileName={viewingFile.name}
-          content={viewingFile.content}
-          type={viewingFile.type}
-          onClose={() => setViewingFile(null)}
-          onDownload={handleDownload}
-        />
-      )}
+          {error && (
+            <div className="p-6 rounded-2xl bg-destructive/5 border border-destructive/20 animate-fade-in text-center max-w-2xl mx-auto">
+              <p className="text-destructive font-medium mb-2">{error}</p>
+              <p className="text-sm text-slate-500">Please ensure the backend server is reachable.</p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };

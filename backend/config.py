@@ -11,7 +11,12 @@ class Settings:
     DB_PORT = os.getenv("DB_PORT", "5432")
     DB_NAME = os.getenv("DB_NAME", "autoclean_agent_db")
 
+    # App Auth Settings
+    APP_USERNAME = os.getenv("APP_USERNAME", "admin")
+    APP_PASSWORD = os.getenv("APP_PASSWORD", "password")
+
     @property
+
     def DATABASE_URL(self):
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 

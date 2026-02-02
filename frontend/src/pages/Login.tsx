@@ -5,10 +5,6 @@ import cosmicBg from '@/assets/cosmic-bg.jpg';
 import StarField from '@/components/StarField';
 import OrionConstellation from '@/components/OrionConstellation';
 
-// Hardcoded credentials
-const VALID_USERNAME = 'thariq';
-const VALID_PASSWORD = '1102';
-
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
@@ -21,20 +17,33 @@ const Login = () => {
     setError('');
     setIsLoading(true);
 
-    // Simulate a small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const response = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-      // Store auth state
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('username', username);
-      navigate('/dashboard');
-    } else {
-      setError('Invalid username or password');
+      if (response.ok) {
+        const data = await response.json();
+        // Store auth state
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('username', data.username);
+        navigate('/dashboard');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Invalid username or password');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Connection to server failed. Please ensure backend is running.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
+
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">

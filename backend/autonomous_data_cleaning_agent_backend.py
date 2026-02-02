@@ -180,18 +180,119 @@ def run_pipeline(input_path, output_dir="outputs"):
 
     df.to_csv(os.path.join(output_dir, "cleaned_data.csv"), index=False)
 
-    ProfileReport(df, explorative=True).to_file(
-        os.path.join(output_dir, "eda_report.html")
-    )
+    profile = ProfileReport(df, explorative=True)
+    # Manual dark mode injection if needed or try another way
+    # Let's try the theme parameter which might be supported in some versions
+    profile.to_file(os.path.join(output_dir, "eda_report.html"))
+    
+    # Post-process the HTML to inject dark mode CSS and enable Bootstrap dark theme
+    with open(os.path.join(output_dir, "eda_report.html"), "r", encoding="utf-8") as f:
+        html_content = f.read()
+    
+    # 1. Enable Bootstrap 5 dark theme
+    html_content = html_content.replace("<html lang=en>", '<html lang=en data-bs-theme=dark>')
+    
+    # 2. Add custom CSS for extra compatibility and Full Width
+    dark_css = """
+    <style>
+        :root {
+            --bs-body-bg: #0f172a !important;
+            --bs-body-color: #f8fafc !important;
+            --bs-tertiary-bg: #1e293b !important;
+        }
+        body { 
+            background-color: #0f172a !important; 
+            color: #f8fafc !important; 
+        }
+        /* Force Full Width - Fix for the left/right awkward space */
+        .container, .container-fluid { 
+            max-width: 100% !important; 
+            width: 100% !important;
+            background-color: transparent !important; 
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+        .card, .panel, .well { 
+            background-color: #1e293b !important; 
+            border-color: #334155 !important; 
+        }
+        .table { --bs-table-bg: transparent !important; color: #f8fafc !important; }
+        .text-muted { color: #94a3b8 !important; }
+        svg text { fill: #94a3b8 !important; }
+        .navbar { display: none !important; }
+    </style>
+    """
+    
+    # 3. Add Navigation Fix Script to prevent "mini web page" issue
+    nav_fix_script = """
+    <script>
+        // Prevent internal links from escaping the iframe
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a');
+            if (target && target.getAttribute('href')) {
+                const href = target.getAttribute('href');
+                if (href.startsWith('#')) {
+                    // It's a hash link, let the browser handle it internally
+                    return;
+                }
+                // If it's an external link, open in new tab
+                if (href.startsWith('http') || href.startsWith('data:')) {
+                    target.setAttribute('target', '_blank');
+                }
+            }
+        }, true);
+    </script>
+    """
+    
+    if "</body>" in html_content:
+        html_content = html_content.replace("</body>", f"{dark_css}{nav_fix_script}</body>")
+    else:
+        html_content += f"{dark_css}{nav_fix_script}"
+        
+    with open(os.path.join(output_dir, "eda_report.html"), "w", encoding="utf-8") as f:
+        f.write(html_content)
 
+    score = dataset_health_score(stats)
     summary = generate_business_summary(df, original_shape, stats, insights)
     with open(os.path.join(output_dir, "business_summary.txt"), "w", encoding="utf-8") as f:
         f.write(summary)
+
+    import json
+    summary_data = {
+        "overview": {
+            "processedOn": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "rows": original_shape[0],
+            "columns": original_shape[1],
+            "healthScore": score
+        },
+        "fixes": [
+            {
+                "id": col,
+                "missing": s.get("missing_fixed_pct", 0),
+                "outliers": s.get("outliers_corrected_pct", 0)
+            }
+            for col, s in stats.items()
+        ],
+        "risks": insights if insights else ["No major data-driven risks detected."],
+        "opportunities": [
+            "Data is now suitable for segmentation, trend analysis, and predictive modeling.",
+            "Clean numeric distributions enable reliable KPI tracking."
+        ],
+        "nextActions": [
+            "Segment customers based on cleaned numeric features.",
+            "Track KPIs using median-based metrics where skew exists.",
+            "Proceed with ML or BI pipelines using this cleaned dataset."
+        ]
+    }
+    
+    with open(os.path.join(output_dir, "summary_stats.json"), "w", encoding="utf-8") as f:
+        json.dump(summary_data, f, indent=4)
 
     return {
         "cleaned_data": "cleaned_data.csv",
         "eda_report": "eda_report.html",
         "business_summary": "business_summary.txt",
+        "summary_stats": "summary_stats.json"
     }
 
 
