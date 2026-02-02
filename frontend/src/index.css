@@ -1,0 +1,279 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system - Cosmic Star Theme with Orion Constellation */
+
+@layer base {
+  :root {
+    /* Deep space dark theme as primary */
+    --background: 240 30% 5%;
+    --foreground: 220 20% 95%;
+
+    --card: 240 25% 8%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 240 25% 10%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 265 90% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 80% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 20% 15%;
+    --muted-foreground: 220 15% 65%;
+
+    --accent: 280 85% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 20%;
+    --input: 240 20% 18%;
+    --ring: 265 90% 65%;
+
+    --radius: 0.75rem;
+
+    /* Cosmic colors */
+    --cosmic-purple: 265 90% 65%;
+    --cosmic-blue: 200 80% 55%;
+    --cosmic-cyan: 185 85% 50%;
+    --cosmic-pink: 310 85% 60%;
+    --cosmic-gold: 45 95% 60%;
+    --star-white: 220 30% 95%;
+    --nebula-glow: 280 100% 70%;
+
+    /* Glass effects */
+    --glass-bg: 240 25% 12% / 0.6;
+    --glass-border: 220 20% 95% / 0.1;
+    --glass-highlight: 220 20% 95% / 0.05;
+
+    /* Gradients */
+    --gradient-cosmic: linear-gradient(135deg, hsl(265 90% 65%), hsl(200 80% 55%), hsl(185 85% 50%));
+    --gradient-nebula: linear-gradient(180deg, hsl(280 85% 60% / 0.3), transparent);
+    --gradient-aurora: linear-gradient(90deg, hsl(265 90% 65%), hsl(310 85% 60%), hsl(200 80% 55%));
+
+    /* Shadows */
+    --glow-primary: 0 0 30px hsl(265 90% 65% / 0.4);
+    --glow-secondary: 0 0 30px hsl(200 80% 55% / 0.4);
+    --glow-accent: 0 0 30px hsl(280 85% 60% / 0.4);
+
+    --sidebar-background: 240 25% 8%;
+    --sidebar-foreground: 220 20% 95%;
+    --sidebar-primary: 265 90% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 20% 15%;
+    --sidebar-accent-foreground: 220 20% 95%;
+    --sidebar-border: 240 20% 20%;
+    --sidebar-ring: 265 90% 65%;
+
+    --chart-1: 265 90% 65%;
+    --chart-2: 200 80% 55%;
+    --chart-3: 185 85% 50%;
+    --chart-4: 310 85% 60%;
+    --chart-5: 45 95% 60%;
+  }
+
+  .dark {
+    --background: 240 30% 3%;
+    --foreground: 220 20% 95%;
+    --card: 240 25% 6%;
+    --card-foreground: 220 20% 95%;
+    --popover: 240 25% 8%;
+    --popover-foreground: 220 20% 95%;
+    --primary: 265 90% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 80% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 20% 12%;
+    --muted-foreground: 220 15% 60%;
+    --accent: 280 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 20% 18%;
+    --input: 240 20% 15%;
+    --ring: 265 90% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+  }
+}
+
+@layer components {
+  /* Glass Card Effect */
+  .glass-card {
+    @apply relative overflow-hidden rounded-xl;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 
+      0 8px 32px hsl(265 90% 65% / 0.1),
+      inset 0 1px 0 hsl(var(--glass-highlight));
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 opacity-30;
+    background: linear-gradient(
+      135deg,
+      hsl(220 20% 95% / 0.1) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+  }
+
+  /* Cosmic Button */
+  .btn-cosmic {
+    @apply relative px-6 py-3 rounded-lg font-semibold overflow-hidden transition-all duration-300;
+    background: linear-gradient(135deg, hsl(265 90% 65%), hsl(200 80% 55%));
+    color: hsl(0 0% 100%);
+    box-shadow: 0 0 20px hsl(265 90% 65% / 0.4);
+  }
+
+  .btn-cosmic:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px hsl(265 90% 65% / 0.6);
+  }
+
+  .btn-cosmic::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(135deg, hsl(200 80% 55%), hsl(185 85% 50%));
+  }
+
+  .btn-cosmic:hover::after {
+    opacity: 1;
+  }
+
+  /* Glass Button */
+  .btn-glass {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--glass-border));
+    color: hsl(var(--foreground));
+  }
+
+  .btn-glass:hover {
+    background: hsl(240 25% 12% / 0.8);
+    border-color: hsl(265 90% 65% / 0.5);
+    box-shadow: 0 0 20px hsl(265 90% 65% / 0.2);
+  }
+
+  /* Glow Text */
+  .text-glow {
+    text-shadow: 0 0 20px hsl(265 90% 65% / 0.6);
+  }
+
+  .text-glow-cyan {
+    text-shadow: 0 0 20px hsl(185 85% 50% / 0.6);
+  }
+
+  /* Star Animation */
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(265 90% 65% / 0.4); }
+    50% { box-shadow: 0 0 40px hsl(265 90% 65% / 0.7); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes orbit {
+    from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+  }
+
+  .animate-twinkle {
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(220 20% 95% / 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(265 90% 65%), hsl(200 80% 55%), hsl(185 85% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-aurora {
+    background: linear-gradient(90deg, hsl(265 90% 65%), hsl(310 85% 60%), hsl(200 80% 55%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Cosmic Border */
+  .border-cosmic {
+    border: 1px solid transparent;
+    background: 
+      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      linear-gradient(135deg, hsl(265 90% 65%), hsl(200 80% 55%), hsl(185 85% 50%)) border-box;
+  }
+
+  /* Progress Bar */
+  .progress-cosmic {
+    @apply h-2 rounded-full overflow-hidden;
+    background: hsl(var(--muted));
+  }
+
+  .progress-cosmic-fill {
+    @apply h-full rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, hsl(265 90% 65%), hsl(200 80% 55%));
+    box-shadow: 0 0 10px hsl(265 90% 65% / 0.5);
+  }
+}
+
+@layer utilities {
+  .backdrop-blur-glass {
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+}
