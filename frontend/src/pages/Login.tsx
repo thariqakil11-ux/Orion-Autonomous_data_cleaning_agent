@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Sparkles, User, Lock, LogIn, AlertCircle } from 'lucide-react';
 import cosmicBg from '@/assets/cosmic-bg.jpg';
 import orionLogo from '@/assets/orion-logo.png';
@@ -146,7 +146,10 @@ const Login = () => {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-border/50 text-center">
             <p className="text-xs text-muted-foreground">
-              Secure access to your data cleaning pipeline
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-primary hover:text-primary/80 font-bold transition-colors">
+                Create Repository
+              </Link>
             </p>
           </div>
         </div>

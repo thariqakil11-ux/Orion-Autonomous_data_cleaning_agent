@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Float, JSON, Boolean
 from database import Base
 from datetime import datetime
 
@@ -20,3 +20,14 @@ class AnalysisHistory(Base):
     
     # Store dynamic stats directly if needed (optional optimization)
     summary_json = Column(JSON) 
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_verified = Column(Boolean, default=False)
+    verification_code = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
