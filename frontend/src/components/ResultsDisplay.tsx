@@ -102,6 +102,45 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 />
             </div>
 
+            {/* Health Score Explanation Card */}
+            <div className={`border rounded-2xl p-6 backdrop-blur-md overflow-hidden relative group ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#0A0A15]/60 border-white/5'}`}>
+                {/* Decorative background element */}
+                <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-colors" />
+
+                <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
+                    <div className="flex-1 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-red-500/10 text-red-400">
+                                <ShieldCheck size={20} />
+                            </div>
+                            <h2 className={`text-lg font-bold font-[Orbitron] tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                                Quality Matrix Deciphered
+                            </h2>
+                        </div>
+                        <p className={`text-sm leading-relaxed ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                            The <span className="text-red-400 font-bold">Health Score</span> represents the overall integrity and readiness of your dataset.
+                            It is calculated by analyzing the density of missing values, the variance of outliers, and the consistency of data types across all columns.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
+                        {[
+                            { label: 'Critical', range: '0 - 50', color: 'text-red-500', bg: 'bg-red-500/10', desc: 'Hardware/Logic failure' },
+                            { label: 'Stable', range: '51 - 80', color: 'text-orange-400', bg: 'bg-orange-400/10', desc: 'Manual review suggested' },
+                            { label: 'Optimum', range: '81 - 100', color: 'text-green-400', bg: 'bg-green-400/10', desc: 'Production ready' },
+                        ].map((tier) => (
+                            <div key={tier.label} className={`p-4 rounded-xl border ${theme === 'light' ? 'bg-slate-50 border-slate-100' : 'bg-white/5 border-white/5'}`}>
+                                <div className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-2 ${tier.bg} ${tier.color}`}>
+                                    {tier.label}
+                                </div>
+                                <p className={`text-lg font-bold font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{tier.range}</p>
+                                <p className="text-[10px] text-slate-500 mt-1 font-medium">{tier.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
             <div className="space-y-8">
                 {/* Data Engineering Log - Full Width */}
                 {visibility.showCleanedData && (
