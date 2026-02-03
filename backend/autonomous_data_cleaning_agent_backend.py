@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from ydata_profiling import ProfileReport
 from datetime import datetime
+import json
+from business_insight_engine import generate_business_insights
+from executive_summary_generator import generate_executive_summary_from_insights
 
 # =========================
 # Utility
@@ -75,7 +78,7 @@ def handle_outliers_and_track(df, plan, stats):
 # BUSINESS INSIGHT ENGINE
 # =========================
 
-def generate_business_insights(df, plan):
+def generate_quality_insights(df, plan):
     insights = []
 
     for col in plan["numeric"]:
@@ -176,7 +179,7 @@ def run_pipeline(input_path, output_dir="outputs"):
     df, stats = clean_missing_and_track(df, plan)
     df, stats = handle_outliers_and_track(df, plan, stats)
 
-    insights = generate_business_insights(df, plan)
+    insights = generate_quality_insights(df, plan)
 
     df.to_csv(os.path.join(output_dir, "cleaned_data.csv"), index=False)
 
@@ -253,9 +256,6 @@ def run_pipeline(input_path, output_dir="outputs"):
         f.write(html_content)
 
     score = dataset_health_score(stats)
-    summary = generate_business_summary(df, original_shape, stats, insights)
-    with open(os.path.join(output_dir, "business_summary.txt"), "w", encoding="utf-8") as f:
-        f.write(summary)
 
     import json
     summary_data = {
@@ -288,11 +288,30 @@ def run_pipeline(input_path, output_dir="outputs"):
     with open(os.path.join(output_dir, "summary_stats.json"), "w", encoding="utf-8") as f:
         json.dump(summary_data, f, indent=4)
 
+    # Generate human-readable business insights
+    business_insights = generate_business_insights(df)
+
+    # Save insights.json
+    with open(os.path.join(output_dir, "insights.json"), "w", encoding="utf-8") as f:
+        json.dump(business_insights, f, indent=2)
+
+    # Generate executive summary from structured insights
+    executive_summary = generate_executive_summary_from_insights(
+        insights=business_insights,
+        rows=original_shape[0],
+        columns=original_shape[1],
+        health_score=score
+    )
+
+    with open(os.path.join(output_dir, "executive_summary.txt"), "w", encoding="utf-8") as f:
+        f.write(executive_summary)
+
     return {
         "cleaned_data": "cleaned_data.csv",
         "eda_report": "eda_report.html",
-        "business_summary": "business_summary.txt",
-        "summary_stats": "summary_stats.json"
+        "business_summary": "executive_summary.txt",
+        "summary_stats": "summary_stats.json",
+        "insights": "insights.json"
     }
 
 

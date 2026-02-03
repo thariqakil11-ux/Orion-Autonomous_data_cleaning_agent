@@ -158,6 +158,15 @@ const Dashboard = () => {
     }
   }, []);
 
+  const handleResetAnalysis = useCallback(() => {
+    setCleanedDataFile(null);
+    setBusinessSummary(null);
+    setEdaHtml(null);
+    setSummaryStats(null);
+    setOutputs([]);
+    setError(null);
+  }, []);
+
   const handleDownload = useCallback((fileName: string) => {
     window.open(`${API_BASE_URL}/download/${fileName}`, '_blank');
   }, []);
@@ -277,6 +286,14 @@ const Dashboard = () => {
             <h1 className={`text-xl font-semibold font-[Orbitron] tracking-wide ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
               {isDataAvailable ? 'Business Insights Report' : 'Data Command Center'}
             </h1>
+            {isDataAvailable && (
+              <button
+                onClick={handleResetAnalysis}
+                className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 border ${theme === 'light' ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20'}`}
+              >
+                <RefreshCcw size={12} className="text-purple-400" /> New Session
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-6">
@@ -352,6 +369,7 @@ const Dashboard = () => {
                     onDownload={handleDownload}
                     theme={theme}
                     visibility={visibilitySettings}
+                    onReset={handleResetAnalysis}
                   />
                 </div>
               )}

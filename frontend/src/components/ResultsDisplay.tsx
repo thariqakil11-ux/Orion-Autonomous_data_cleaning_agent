@@ -8,7 +8,8 @@ import {
     Lightbulb,
     ArrowRight,
     Database,
-    CheckCircle2
+    CheckCircle2,
+    RefreshCcw
 } from 'lucide-react';
 import orionLogo from '../assets/orion-logo.png';
 import { RiskCard, OpportunityCard, PipelineCard } from './InsightCards';
@@ -42,6 +43,7 @@ interface ResultsDisplayProps {
         showCleanedData: boolean;
         showEDA: boolean;
     };
+    onReset?: () => void;
 }
 
 const StatusCard = ({ title, value, icon: Icon, colorClass, theme = 'dark' }: { title: string; value: string | number; icon: any; colorClass: string; theme?: 'light' | 'dark' }) => (
@@ -64,7 +66,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     summaryStats,
     onDownload,
     theme = 'dark',
-    visibility = { showInsights: true, showCleanedData: true, showEDA: true }
+    visibility = { showInsights: true, showCleanedData: true, showEDA: true },
+    onReset
 }) => {
     if (!summaryStats) return null;
 
@@ -152,7 +155,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                                 </div>
                                 <h2 className={`text-lg font-semibold font-[Orbitron] ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Data Engineering Log</h2>
                             </div>
-                            <span className="text-[10px] font-mono text-purple-400 bg-purple-400/10 px-2 py-1 rounded font-bold">QUALITY_METRICS_V2</span>
+                            <div className="flex items-center gap-4">
+                                {onReset && (
+                                    <button
+                                        onClick={onReset}
+                                        className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 border ${theme === 'light' ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20'}`}
+                                    >
+                                        <RefreshCcw size={14} className="text-purple-400" /> New Analysis
+                                    </button>
+                                )}
+                                <span className="text-[10px] font-mono text-purple-400 bg-purple-400/10 px-2 py-1 rounded font-bold">QUALITY_METRICS_V2</span>
+                            </div>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">

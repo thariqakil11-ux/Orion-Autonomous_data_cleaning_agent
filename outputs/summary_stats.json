@@ -1,0 +1,63 @@
+{
+    "overview": {
+        "processedOn": "2026-02-03 10:37:36",
+        "rows": 500,
+        "columns": 8,
+        "healthScore": 32.8
+    },
+    "fixes": [
+        {
+            "id": "customer_id",
+            "missing": 0,
+            "outliers": 0
+        },
+        {
+            "id": "age",
+            "missing": 10.0,
+            "outliers": 2.1999999999999997
+        },
+        {
+            "id": "income",
+            "missing": 10.0,
+            "outliers": 7.6
+        },
+        {
+            "id": "gender",
+            "missing": 6.2,
+            "outliers": 0
+        },
+        {
+            "id": "city",
+            "missing": 8.6,
+            "outliers": 0
+        },
+        {
+            "id": "signup_date",
+            "missing": 0,
+            "outliers": 0
+        },
+        {
+            "id": "last_purchase_amount",
+            "missing": 9.6,
+            "outliers": 8.200000000000001
+        },
+        {
+            "id": "churn",
+            "missing": 4.8,
+            "outliers": 0
+        }
+    ],
+    "risks": [
+        "'last_purchase_amount' is highly skewed, which may distort average-based business decisions.",
+        "'signup_date' has high cardinality, which may increase model and reporting complexity."
+    ],
+    "opportunities": [
+        "Data is now suitable for segmentation, trend analysis, and predictive modeling.",
+        "Clean numeric distributions enable reliable KPI tracking."
+    ],
+    "nextActions": [
+        "Segment customers based on cleaned numeric features.",
+        "Track KPIs using median-based metrics where skew exists.",
+        "Proceed with ML or BI pipelines using this cleaned dataset."
+    ]
+}
