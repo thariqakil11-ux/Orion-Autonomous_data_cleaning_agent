@@ -149,15 +149,9 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     raise HTTPException(status_code=401, detail="Invalid username or password")
 
 app.add_middleware(
-
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -213,7 +207,8 @@ async def process_file(file: UploadFile = File(...), db: Session = Depends(get_d
     return {
         "message": "Processing complete",
         "outputs": outputs,
-        "id": new_analysis.id
+        "id": new_analysis.id,
+        "summary": stats
     }
 
 

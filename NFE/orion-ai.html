@@ -647,27 +647,6 @@ body {
 .eda-risk.err { background: rgba(252,129,129,0.05); border-color: rgba(252,129,129,0.2); }
 .eda-risk.ok { background: rgba(104,211,145,0.05); border-color: rgba(104,211,145,0.2); }
 
-/* Insights from Phi-3 */
-.insights-container { display: grid; gap: 20px; margin-top: 20px; }
-.insights-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-.insights-section-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.insights-section-title-icon { font-size: 18px; }
-.insights-item {
-  padding: 14px; margin-bottom: 12px;
-  background: var(--bg2); border-radius: 10px;
-  border: 1px solid var(--border);
-}
-.insights-item:last-child { margin-bottom: 0; }
-.insights-item-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--accent2); }
-.insights-item-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
-.insights-item-text ul { margin: 8px 0; padding-left: 20px; }
-.insights-item-text li { margin: 4px 0; }
-.insights-item-text strong { color: var(--text); font-weight: 600; }
-
-.insights-risk { border-left: 3px solid var(--red); }
-.insights-opportunity { border-left: 3px solid var(--green); }
-.insights-pipeline { border-left: 3px solid var(--accent2); }
-
 /* responsive basic */
 @media(max-width:1024px) {
   .kpi-grid { grid-template-columns: repeat(2,1fr); }
@@ -1163,9 +1142,7 @@ body {
           </div>
         </div>
 
-        <div id="phi3-insights-container" class="insights-container" style="display:none;"></div>
-        
-        <div id="static-insights" class="card">
+        <div class="card">
           <div class="card-title">EDA Risk Signals</div>
           <div class="eda-risk warn">
             <div class="eda-risk-icon">⚠️</div>
@@ -1573,39 +1550,9 @@ function startProcessing() {
       setTimeout(() => {
         overlay.classList.add('hidden');
         setView('pipeline');
-        
-        // Simulate fetching Phi-3 insights (in real app, this would come from backend)
-        const mockInsights = {
-          business_risks: [
-            {
-              title: "High Revenue Volatility Risk",
-              explanation: "• Revenue shows high skewness (4.21) indicating non-normal distribution\n• Large gaps between mean ($82K) and median values\n• Potential for sudden revenue drops not captured in average metrics\n• Historical data may not predict future performance accurately",
-              why_it_matters: "• Forecasting models trained on this data will be unreliable\n• Budget planning based on average revenue could miss downside risks\n• Compliance reporting requires accurate revenue distribution understanding\n• Financial projections underestimate volatility risk"
-            },
-            {
-              title: "Customer ID Cardinality Issue",
-              explanation: "• 14,832 unique customer IDs in 14,832 rows (99.8% cardinality)\n• Each row represents essentially one customer interaction\n• This column has no predictive value\n• Likely a unique identifier that should be excluded",
-              why_it_matters: "• Including this feature will cause overfitting in ML models\n• Increases model complexity without information gain\n• Real customer retention patterns are hidden by ID uniqueness\n• Cannot be used for customer segmentation"
-            }
-          ],
-          strategic_opportunities: [
-            "Implement time-series analysis on revenue data using ARIMA or Prophet to forecast demand patterns despite the high skewness. This would enable more accurate quarterly planning and resource allocation.",
-            "Develop customer segment cohorts by removing individual IDs and grouping by geography/channel. This reveals retention patterns and lifetime value segmentation for targeted retention campaigns.",
-            "Build anomaly detection system using Isolation Forest to flag unusual revenue spikes/drops for investigation. Current data shows these occur frequently (high skewness) and could indicate fraud or data quality issues."
-          ],
-          recommended_pipeline: [
-            "Data Transformation: Apply log transformation to skewed revenue column to normalize distribution. This enables use of parametric statistical tests and improves linear model assumptions.",
-            "Feature Engineering: Drop customer_id, create customer lifecycle features (tenure, # transactions, avg value). Engineer time-based features (day of week, seasonality) to capture patterns.",
-            "Modeling: Start with XGBoost or LightGBM which are robust to non-normal distributions. Use cross-validation with stratified folds to avoid data leakage from high cardinality effects.",
-            "Monitoring: Implement Isolation Forest for real-time anomaly detection on new revenue data. Set alerts for values beyond 95th percentile to catch outliers early for investigation."
-          ]
-        };
-        
-        renderPhi3Insights(mockInsights);
-        
         pipelineStages.forEach(p => p.state = 'completed');
         renderPipelineStages();
-        showToast('Pipeline complete! Phi-3 insights generated.', 'success');
+        showToast('Pipeline complete! EDA report ready.', 'success');
         historyData.unshift({ name:'new_upload.csv', rows:8321, cols:22, nulls:901, outliers:144, score:79, status:'success', date:'2026-03-27 '+new Date().toTimeString().slice(0,5) });
         renderRecentTable();
         renderHistoryTable(historyData);
@@ -1637,106 +1584,6 @@ function buildSparkline() {
   const vals = [32,45,28,67,54,78,91,43,82,95,71,88];
   const max = Math.max(...vals);
   el.innerHTML = vals.map(v=>`<div class="spark-bar" style="height:${Math.round((v/max)*100)}%" title="$${v}K"></div>`).join('');
-}
-
-/* ══════════════════════════
-   PHI-3 INSIGHTS RENDERING
-══════════════════════════ */
-function parseBulletPoints(text) {
-  if (!text) return '';
-  // Convert bullet points and dashes to proper list formatting
-  const lines = text.split('\n').filter(l => l.trim());
-  const html = lines.map(line => {
-    const trimmed = line.trim();
-    if (trimmed.match(/^[-•·*]\s/) || trimmed.match(/^\d+\.\s/)) {
-      return `<li>${trimmed.replace(/^[-•·*]\s|^\d+\.\s/, '')}</li>`;
-    }
-    return trimmed;
-  }).join('');
-  
-  return html.includes('<li>') ? `<ul>${html.replaceAll('</li>', '</li>\n')}</ul>` : html;
-}
-
-function renderPhi3Insights(insightsData) {
-  const container = document.getElementById('phi3-insights-container');
-  const staticInsights = document.getElementById('static-insights');
-  
-  if (!insightsData || !container) return;
-  
-  // Hide static insights, show Phi-3 insights
-  staticInsights.style.display = 'none';
-  container.style.display = 'grid';
-  
-  let html = '';
-  
-  // Business Risks Section (Top)
-  if (insightsData.business_risks && insightsData.business_risks.length > 0) {
-    html += `<div class="insights-section">
-      <div class="insights-section-title">
-        <span class="insights-section-title-icon">🚨</span>
-        Business Risks & Warnings
-      </div>`;
-    
-    insightsData.business_risks.forEach(risk => {
-      const bulletContent = parseBulletPoints(risk.explanation);
-      const whyBullets = parseBulletPoints(risk.why_it_matters);
-      html += `
-      <div class="insights-item insights-risk">
-        <div class="insights-item-title">${risk.title}</div>
-        <div class="insights-item-text">
-          <strong>Explanation:</strong>
-          ${bulletContent}
-          <div style="margin-top:8px;"><strong>Why it matters:</strong></div>
-          ${whyBullets}
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-  
-  // Strategic Opportunities Section (Middle)
-  if (insightsData.strategic_opportunities && insightsData.strategic_opportunities.length > 0) {
-    html += `<div class="insights-section">
-      <div class="insights-section-title">
-        <span class="insights-section-title-icon">💡</span>
-        Strategic Opportunities
-      </div>`;
-    
-    insightsData.strategic_opportunities.forEach((opp, i) => {
-      const content = parseBulletPoints(opp);
-      html += `
-      <div class="insights-item insights-opportunity">
-        <div class="insights-item-title">Opportunity ${i + 1}</div>
-        <div class="insights-item-text">
-          ${content}
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-  
-  // Recommended Pipeline Section (Bottom)
-  if (insightsData.recommended_pipeline && insightsData.recommended_pipeline.length > 0) {
-    html += `<div class="insights-section">
-      <div class="insights-section-title">
-        <span class="insights-section-title-icon">🔧</span>
-        Recommended Pipeline & Next Steps
-      </div>`;
-    
-    insightsData.recommended_pipeline.forEach((pipeline, i) => {
-      const content = parseBulletPoints(pipeline);
-      html += `
-      <div class="insights-item insights-pipeline">
-        <div class="insights-item-title">Step ${i + 1}</div>
-        <div class="insights-item-text">
-          ${content}
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-  
-  container.innerHTML = html;
 }
 
 /* ══════════════════════════
