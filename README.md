@@ -118,4 +118,4 @@ Orion's core logic is divided into specialized agents:
 
 ---
 
-Built with ❤️ by the Orion Team.
+Built by the Orion Team.
