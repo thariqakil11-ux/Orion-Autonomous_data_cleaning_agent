@@ -827,10 +827,7 @@ body {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Overview
       </button>
-      <button class="sidebar-link" onclick="setView('upload')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Upload Data
-      </button>
+      
       <button class="sidebar-link" onclick="setView('pipeline')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M4.22 4.22l2.12 2.12m11.32 11.32l2.12 2.12M2 12h3m14 0h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
         Agent Pipeline
@@ -883,8 +880,8 @@ body {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Datasets Processed
           </div>
-          <div class="kpi-value" style="color:var(--text);">142</div>
-          <div class="kpi-sub">+18 this week</div>
+          <div class="kpi-value" id="kpi-datasets" style="color:var(--text);">0</div>
+          <div class="kpi-sub">No datasets yet</div>
           <div class="kpi-icon" style="background:rgba(104,211,145,0.1);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
@@ -894,7 +891,7 @@ body {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             Nulls Imputed
           </div>
-          <div class="kpi-value" style="color:var(--accent2);">48,291</div>
+          <div class="kpi-value" id="kpi-nulls" style="color:var(--accent2);">0</div>
           <div class="kpi-sub">Across all datasets</div>
           <div class="kpi-icon" style="background:rgba(99,179,237,0.1);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -905,8 +902,8 @@ body {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             Outliers Corrected
           </div>
-          <div class="kpi-value" style="color:var(--gold);">3,847</div>
-          <div class="kpi-sub">Avg. 27 per dataset</div>
+          <div class="kpi-value" id="kpi-outliers" style="color:var(--gold);">0</div>
+          <div class="kpi-sub">Across all datasets</div>
           <div class="kpi-icon" style="background:rgba(246,173,85,0.1);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
@@ -916,8 +913,8 @@ body {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             Avg. Health Score
           </div>
-          <div class="kpi-value" style="color:var(--purple);">84.7</div>
-          <div class="kpi-sub">↑ 3.2 pts from last month</div>
+          <div class="kpi-value" id="kpi-health" style="color:var(--purple);">—</div>
+          <div class="kpi-sub">No data yet</div>
           <div class="kpi-icon" style="background:rgba(183,148,244,0.1);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           </div>
@@ -1050,7 +1047,7 @@ body {
     </div>
 
     <!-- ── UPLOAD VIEW ── -->
-    <div id="view-upload" class="hidden">
+    <div id="view-pipeline" class="hidden">
       <div class="topbar">
         <div>
           <h1>Upload Dataset</h1>
@@ -1065,14 +1062,30 @@ body {
             ondragover="event.preventDefault();this.classList.add('drag-over')"
             ondragleave="this.classList.remove('drag-over')"
             ondrop="handleDrop(event)">
-            <div class="upload-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+
+            <!-- Idle state -->
+            <div id="upload-idle">
+              <div class="upload-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <div class="upload-title">Drop your dataset here</div>
+              <div class="upload-sub">or click the button below to browse files</div>
+              <div class="upload-formats">Supported: .csv · .xlsx · .xls · .tsv</div>
+              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.tsv" style="display:none" onchange="handleFileSelect(this)">
+              <button class="btn-upload" onclick="document.getElementById('file-input').click()">Browse Files</button>
             </div>
-            <div class="upload-title">Drop your dataset here</div>
-            <div class="upload-sub">or click the button below to browse files</div>
-            <div class="upload-formats">Supported: .csv · .xlsx · .xls · .tsv</div>
-            <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.tsv" style="display:none" onchange="handleFileSelect(this)">
-            <button class="btn-upload" onclick="document.getElementById('file-input').click()">Browse Files</button>
+
+            <!-- File selected state -->
+            <div id="upload-selected" style="display:none;">
+              <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(104,211,145,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+              </div>
+              <div class="upload-title" style="color:var(--green);">File Ready</div>
+              <div id="selected-file-name" style="font-size:14px;font-weight:700;color:var(--text);margin:8px 0 4px;word-break:break-all;padding:0 16px;"></div>
+              <div id="selected-file-size" style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;"></div>
+              <button class="btn-upload" style="margin-top:16px;background:transparent;border:1px solid var(--border2);color:var(--text2);" onclick="clearSelectedFile()">✕ Change File</button>
+            </div>
+
           </div>
         </div>
 
@@ -1118,8 +1131,8 @@ body {
       </div>
     </div>
 
-    <!-- ── PIPELINE VIEW ── -->
-    <div id="view-pipeline" class="hidden">
+    <!-- ── AGENT PIPELINE RESULTS ── -->
+    <div style="margin-top:40px; padding-top:40px; border-top:1px solid var(--border);" id="pipeline-results-block">
       <div class="topbar">
         <div>
           <h1>Agent Pipeline</h1>
@@ -1144,32 +1157,13 @@ body {
 
         <div class="card">
           <div class="card-title">EDA Risk Signals</div>
-          <div class="eda-risk warn">
-            <div class="eda-risk-icon">⚠️</div>
-            <div>
-              <div class="eda-risk-title">High Skewness Detected</div>
-              <div class="eda-risk-desc">Column <span class="mono" style="color:var(--gold)">revenue_usd</span>: skew = 4.21 (right-tailed). Log transform recommended.</div>
-            </div>
-          </div>
-          <div class="eda-risk err">
-            <div class="eda-risk-icon">🔴</div>
-            <div>
-              <div class="eda-risk-title">High Cardinality Column</div>
-              <div class="eda-risk-desc">Column <span class="mono" style="color:var(--red)">customer_id</span>: 14,832 unique values (99.8% cardinality). Likely unique identifier — exclude from ML features.</div>
-            </div>
-          </div>
-          <div class="eda-risk warn">
-            <div class="eda-risk-icon">⚠️</div>
-            <div>
-              <div class="eda-risk-title">Near-Zero Variance</div>
-              <div class="eda-risk-desc">Column <span class="mono" style="color:var(--gold)">is_deleted</span>: 99.1% constant (0). Consider dropping from analysis.</div>
-            </div>
-          </div>
-          <div class="eda-risk ok">
-            <div class="eda-risk-icon">✅</div>
-            <div>
-              <div class="eda-risk-title">Schema Classification Complete</div>
-              <div class="eda-risk-desc">28 columns classified: 12 numeric · 9 categorical · 4 datetime · 3 boolean</div>
+          <div id="eda-risk-container">
+            <div style="text-align:center;padding:40px 20px;color:var(--text3);">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px;display:block;opacity:0.4">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div style="font-size:13px;font-weight:600;">No dataset processed yet</div>
+              <div style="font-size:12px;margin-top:4px;">EDA signals will appear here after you upload and run a file.</div>
             </div>
           </div>
         </div>
@@ -1177,15 +1171,15 @@ body {
 
       <div class="results-grid" style="margin-top:0;">
         <div class="result-stat">
-          <div class="result-stat-val" style="color:var(--green)">14,832</div>
+          <div class="result-stat-val" id="pipe-rows" style="color:var(--green)">—</div>
           <div class="result-stat-lbl">Total Rows Processed</div>
         </div>
         <div class="result-stat">
-          <div class="result-stat-val" style="color:var(--accent2)">2,041</div>
+          <div class="result-stat-val" id="pipe-nulls" style="color:var(--accent2)">—</div>
           <div class="result-stat-lbl">Nulls Handled</div>
         </div>
         <div class="result-stat">
-          <div class="result-stat-val" style="color:var(--gold)">318</div>
+          <div class="result-stat-val" id="pipe-outliers" style="color:var(--gold)">—</div>
           <div class="result-stat-lbl">Outliers Corrected</div>
         </div>
       </div>
@@ -1309,15 +1303,7 @@ let authEmail = 'demo@orion.ai';
 let selectedFile = null;
 const API_URL = 'http://localhost:8000';
 
-const historyData = [
-  { name:'sales_q1_2026.csv',   rows:14832, cols:28, nulls:2041, outliers:318, score:85, status:'success', date:'2026-03-27 14:22' },
-  { name:'customer_churn.xlsx', rows:8291,  cols:19, nulls:544,  outliers:87,  score:72, status:'success', date:'2026-03-26 09:10' },
-  { name:'inventory_raw.csv',   rows:51203, cols:34, nulls:8831, outliers:1204,score:58, status:'success', date:'2026-03-25 16:48' },
-  { name:'hr_data_q4.xlsx',     rows:2100,  cols:22, nulls:201,  outliers:14,  score:91, status:'success', date:'2026-03-24 11:30' },
-  { name:'transactions.csv',    rows:99841, cols:12, nulls:3302, outliers:892, score:63, status:'running', date:'2026-03-27 15:01' },
-  { name:'returns_2025.csv',    rows:4422,  cols:16, nulls:0,    outliers:33,  score:96, status:'success', date:'2026-03-22 08:15' },
-  { name:'leads_export.xlsx',   rows:1829,  cols:31, nulls:892,  outliers:121, score:44, status:'failed',  date:'2026-03-21 17:02' },
-];
+const historyData = [];
 
 const pipelineStages = [
   { name:'Planner',       desc:'Schema detection & type classification', color:'c', icon:'grid',    state:'completed' },
@@ -1364,7 +1350,32 @@ function mfaNext(n) {
 function verifyMFA() {
   const btn = document.getElementById('verify-btn');
   btn.textContent = 'Verifying...'; btn.disabled = true;
-  setTimeout(() => {
+  // FETCH INSIGHTS
+    let newInsightsHtml = "";
+    try {
+        const insightsRes = await fetch('http://localhost:8000/view/insights.json');
+        if (insightsRes.ok) {
+            const insightsJSON = await insightsRes.json();
+            if (insightsJSON.business_risks && insightsJSON.business_risks.length > 0) {
+                newInsightsHtml = insightsJSON.business_risks.map(r => `
+                    <div class="eda-risk err">
+                        <div class="eda-risk-icon">🔴</div>
+                        <div>
+                        <div class="eda-risk-title" style="color:var(--red)">${r.title}</div>
+                        <div class="eda-risk-desc" style="white-space:pre-line; margin-top:8px;">${r.explanation.replace(/\n/g, '<br/>')}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch(e) { console.error("Failed to fetch insights", e); }
+    
+    setTimeout(() => {
+      if (newInsightsHtml) {
+          const container = document.getElementById('eda-risk-container');
+          if (container) container.innerHTML = newInsightsHtml;
+      }
+      
     show('dashboard');
     setView('overview');
     initDashboard();
@@ -1375,21 +1386,38 @@ function verifyMFA() {
 /* ══════════════════════════
    DASHBOARD INIT
 ══════════════════════════ */
+function updateKPIs() {
+  const successful = historyData.filter(r => r.status === 'success');
+  const totalDatasets = historyData.length;
+  const totalNulls    = historyData.reduce((s, r) => s + (r.nulls || 0), 0);
+  const totalOutliers = historyData.reduce((s, r) => s + (r.outliers || 0), 0);
+  const avgHealth     = successful.length
+    ? Math.round(successful.reduce((s, r) => s + (r.score || 0), 0) / successful.length * 10) / 10
+    : null;
+
+  const el = id => document.getElementById(id);
+  if (el('kpi-datasets')) el('kpi-datasets').textContent = totalDatasets;
+  if (el('kpi-nulls'))    el('kpi-nulls').textContent    = totalNulls.toLocaleString();
+  if (el('kpi-outliers')) el('kpi-outliers').textContent = totalOutliers.toLocaleString();
+  if (el('kpi-health'))   el('kpi-health').textContent   = avgHealth !== null ? avgHealth : '—';
+}
+
 function initDashboard() {
   renderRecentTable();
   renderHistoryTable(historyData);
   renderPipelineStages();
   renderReports();
   buildSparkline();
+  updateKPIs();
 }
 
 function setView(v) {
   currentView = v;
-  ['overview','upload','pipeline','history','reports'].forEach(n => {
+  ['overview','pipeline','history','reports'].forEach(n => {
     document.getElementById('view-'+n).classList.toggle('hidden', n!==v);
   });
   document.querySelectorAll('.sidebar-link').forEach((el, i) => {
-    const views = ['overview','upload','pipeline','history','reports'];
+    const views = ['overview','pipeline','history','reports'];
     el.classList.toggle('active', views[i] === v);
   });
   if (v === 'pipeline') renderPipelineStages();
@@ -1504,20 +1532,105 @@ function handleFileSelect(input) {
   if (input.files[0]) { selectedFile = input.files[0]; previewFile(input.files[0]); }
 }
 
-function previewFile(file) {
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function clearSelectedFile() {
+  selectedFile = null;
+  // Remove JS-created banner if present
+  const banner = document.getElementById('file-selected-banner');
+  if (banner) banner.remove();
+  // Reset upload zone back to idle look
+  const zone = document.getElementById('upload-zone');
+  if (zone) {
+    zone.style.borderColor = '';
+    zone.style.background = '';
+  }
+  // Clear file input and hide preview card
+  const fi = document.getElementById('file-input');
+  if (fi) fi.value = '';
   const card = document.getElementById('file-preview-card');
+  if (card) card.style.display = 'none';
+  // Also reset any HTML-based state divs if they exist
+  const idle = document.getElementById('upload-idle');
+  const sel  = document.getElementById('upload-selected');
+  if (idle) idle.style.display = 'block';
+  if (sel)  sel.style.display  = 'none';
+}
+
+function previewFile(file) {
+  // ── 1. Dynamically inject a file-name banner (works regardless of cached HTML) ──
+  let banner = document.getElementById('file-selected-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'file-selected-banner';
+    const zone = document.getElementById('upload-zone');
+    if (zone) zone.parentNode.insertBefore(banner, zone.nextSibling);
+  }
+  banner.style.cssText = `
+    display:flex; align-items:center; gap:14px;
+    margin-top:12px; padding:14px 18px;
+    background:rgba(104,211,145,0.07);
+    border:1px solid rgba(104,211,145,0.28);
+    border-radius:12px; animation:cardIn 0.25s ease;
+  `;
+  banner.innerHTML = `
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(104,211,145,0.12);
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <polyline points="9 15 11 17 15 13"/>
+      </svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:700;color:var(--text);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+      >${file.name}</div>
+      <div style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;">
+        ${formatBytes(file.size)} &nbsp;·&nbsp; Ready to process
+      </div>
+    </div>
+    <span style="font-size:11px;font-weight:700;color:var(--green);
+      background:rgba(104,211,145,0.1);padding:3px 10px;border-radius:100px;white-space:nowrap;">
+      ✓ Selected
+    </span>
+    <button onclick="clearSelectedFile()" style="
+      background:transparent;border:1px solid var(--border);border-radius:6px;
+      color:var(--text3);cursor:pointer;padding:4px 10px;font-size:12px;white-space:nowrap;
+      font-family:'Syne',sans-serif;transition:all 0.15s;flex-shrink:0;"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'"
+    >✕ Change</button>
+  `;
+
+  // ── 2. Also toggle HTML state divs if they exist (new HTML) ──
+  const idle = document.getElementById('upload-idle');
+  const sel  = document.getElementById('upload-selected');
+  const nameEl = document.getElementById('selected-file-name');
+  const sizeEl = document.getElementById('selected-file-size');
+  if (idle) idle.style.display = 'none';
+  if (sel)  sel.style.display  = 'block';
+  if (nameEl) nameEl.textContent = file.name;
+  if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+
+  // ── 3. Show preview table card below ──
+  const card  = document.getElementById('file-preview-card');
   const badge = document.getElementById('preview-rows-badge');
-  const wrap = document.getElementById('preview-table-wrap');
-  card.style.display = 'block';
-  badge.textContent = file.name;
-  wrap.innerHTML = `
+  const wrap  = document.getElementById('preview-table-wrap');
+  if (card)  card.style.display = 'block';
+  if (badge) badge.textContent  = file.name;
+  if (wrap)  wrap.innerHTML = `
     <table style="border-collapse:collapse;width:100%;">
       <thead><tr style="border-bottom:1px solid var(--border);">
         ${['id','name','revenue','region','status','date'].map(c=>`<th style="padding:8px 12px;text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;">${c}</th>`).join('')}
       </tr></thead>
       <tbody>${Array.from({length:5},(_,i)=>`<tr>${['id','name','revenue','region','status','date'].map(c=>`<td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);color:${c==='revenue'?'var(--accent2)':'var(--text2)'};">${getSample(c,i)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table>`;
-  showToast(`File "${file.name}" loaded`, 'success');
+  showToast(`"${file.name}" ready to process`, 'success');
 }
 
 function getSample(col, i) {
@@ -1581,35 +1694,114 @@ async function startProcessing() {
     const data = await res.json();
     const stats = data.outputs || {};
 
+    // FETCH INSIGHTS
+    let newInsightsHtml = "";
+    try {
+        const insightsRes = await fetch(`${API_URL}/view/insights.json`);
+        if (insightsRes.ok) {
+            const insightsJSON = await insightsRes.json();
+            if (insightsJSON.business_risks && insightsJSON.business_risks.length > 0) {
+                newInsightsHtml = insightsJSON.business_risks.map(r => `
+                    <div class="eda-risk err">
+                        <div class="eda-risk-icon">🔴</div>
+                        <div>
+                        <div class="eda-risk-title" style="color:var(--red)">${r.title}</div>
+                        <div class="eda-risk-desc" style="white-space:pre-line; margin-top:8px;">${r.explanation.replace(/\n/g, '<br/>')}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch(e) { console.error("Failed to fetch insights", e); }
+
     // Update overlay to 100%
     document.getElementById('overlay-progress').style.width = '100%';
     document.getElementById('processing-title').textContent = 'Pipeline Complete!';
     document.getElementById('overlay-label').textContent = 'All 4 stages finished successfully.';
 
     setTimeout(() => {
+      // IF WE FETCHED NEW INSIGHTS, INJECT THEM
+      if (newInsightsHtml) {
+          document.getElementById('eda-risk-container').innerHTML = newInsightsHtml;
+      }
+
       overlay.classList.add('hidden');
       setView('pipeline');
       pipelineStages.forEach(p => p.state = 'completed');
       renderPipelineStages();
       showToast('Pipeline complete! EDA report ready.', 'success');
 
+      // Parse real summary from backend
+      const ov       = data.summary?.overview || {};
+      const fixes    = data.summary?.fixes    || [];
+      const risks    = data.summary?.risks    || [];
+
+      // Total nulls and outliers from per-column fixes
+      const totalNulls    = Math.round(fixes.reduce((s, f) => s + (f.missing  || 0), 0) * ov.rows / 100);
+      const totalOutliers = Math.round(fixes.reduce((s, f) => s + (f.outliers || 0), 0) * ov.rows / 100);
+
       // Add real entry to history
       const now = new Date().toLocaleString('sv-SE').slice(0,16).replace('T',' ');
       historyData.unshift({
-        name: selectedFile.name,
-        rows: data.summary?.rows || 0,
-        cols: data.summary?.columns || 0,
-        nulls: data.summary?.nulls_handled || 0,
-        outliers: data.summary?.outliers_corrected || 0,
-        score: data.summary?.health_score || 0,
-        status: 'success',
-        date: now,
-        outputs: stats
+        name:     selectedFile.name,
+        rows:     ov.rows     || 0,
+        cols:     ov.columns  || 0,
+        nulls:    totalNulls,
+        outliers: totalOutliers,
+        score:    ov.healthScore || 0,
+        status:   'success',
+        date:     now,
+        outputs:  data.outputs || {}
       });
       renderRecentTable();
       renderHistoryTable(historyData);
       renderReports();
-      selectedFile = null;
+      updateKPIs();
+
+      // Update pipeline view stats
+      const pRows = document.getElementById('pipe-rows');
+      const pNulls = document.getElementById('pipe-nulls');
+      const pOut  = document.getElementById('pipe-outliers');
+      if (pRows)  pRows.textContent  = ov.rows     ? ov.rows.toLocaleString()           : '—';
+      if (pNulls) pNulls.textContent = totalNulls  ? totalNulls.toLocaleString()         : '0';
+      if (pOut)   pOut.textContent   = totalOutliers ? totalOutliers.toLocaleString()    : '0';
+
+      // Render real EDA Risk Signals ONLY if new insights didn't load
+      const edaContainer = document.getElementById('eda-risk-container');
+      if (edaContainer) {
+        if (!newInsightsHtml) {
+          if (risks.length === 0 || (risks.length === 1 && risks[0].includes('No major'))) {
+            edaContainer.innerHTML = `
+              <div class="eda-risk ok">
+                <div class="eda-risk-icon">✅</div>
+                <div>
+                  <div class="eda-risk-title">No Major Risks Detected</div>
+                  <div class="eda-risk-desc">Dataset is clean and ready for analysis.</div>
+                </div>
+              </div>`;
+          } else {
+            edaContainer.innerHTML = risks.map(r => `
+              <div class="eda-risk warn">
+                <div class="eda-risk-icon">⚠️</div>
+                <div>
+                  <div class="eda-risk-title">Data Quality Signal</div>
+                  <div class="eda-risk-desc">${r}</div>
+                </div>
+              </div>`).join('');
+          }
+        }
+        // Always add schema summary at bottom
+        edaContainer.innerHTML += `
+          <div class="eda-risk ok" style="margin-top:8px;">
+            <div class="eda-risk-icon">✅</div>
+            <div>
+              <div class="eda-risk-title">Schema Classification Complete</div>
+              <div class="eda-risk-desc">${ov.rows || 0} rows · ${ov.columns || 0} columns · Health Score ${ov.healthScore || 0}/100</div>
+            </div>
+          </div>`;
+      }
+
+      clearSelectedFile();
     }, 800);
 
   } catch (err) {

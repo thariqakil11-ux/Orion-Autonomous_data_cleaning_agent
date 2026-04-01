@@ -1306,8 +1306,6 @@ body {
 ══════════════════════════ */
 let currentView = 'overview';
 let authEmail = 'demo@orion.ai';
-let selectedFile = null;
-const API_URL = 'http://localhost:8000';
 
 const historyData = [
   { name:'sales_q1_2026.csv',   rows:14832, cols:28, nulls:2041, outliers:318, score:85, status:'success', date:'2026-03-27 14:22' },
@@ -1497,11 +1495,11 @@ function handleDrop(e) {
   e.preventDefault();
   document.getElementById('upload-zone').classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
-  if (file) { selectedFile = file; previewFile(file); }
+  if (file) previewFile(file);
 }
 
 function handleFileSelect(input) {
-  if (input.files[0]) { selectedFile = input.files[0]; previewFile(input.files[0]); }
+  if (input.files[0]) previewFile(input.files[0]);
 }
 
 function previewFile(file) {
@@ -1532,92 +1530,35 @@ function getSample(col, i) {
   return d[col]?.[i] ?? '—';
 }
 
-async function startProcessing() {
-  if (!selectedFile) {
-    showToast('Please select a file first.', 'error');
-    return;
-  }
-
+function startProcessing() {
   const overlay = document.getElementById('processing-overlay');
   overlay.classList.remove('hidden');
-
-  const stages = [
-    'Planner — Schema Detection',
-    'Cleaner — Null Imputation',
-    'Insight Engine — Risk Analysis',
-    'Reporter — Generating EDA'
-  ];
-
-  // Animate stages while real upload runs in background
+  const stages = ['Planner — Schema Detection','Cleaner — Null Imputation','Insight Engine — Risk Analysis','Reporter — Generating EDA'];
   let s = 0;
-  const updateOverlay = () => {
-    const pct = Math.round(((s + 1) / 4) * 100);
-    document.getElementById('overlay-progress').style.width = pct + '%';
+  const update = () => {
+    const pct = Math.round(((s+1)/4)*100);
+    document.getElementById('overlay-progress').style.width = pct+'%';
     document.getElementById('processing-title').textContent = stages[s];
-    document.getElementById('overlay-label').textContent =
-      `Stage ${s + 1} of 4 — processing...`;
+    document.getElementById('overlay-label').textContent = `Stage ${s+1} of 4 — ${Math.round(pct)}% complete`;
   };
-  updateOverlay();
-  const animInterval = setInterval(() => {
-    if (s < 3) { s++; updateOverlay(); }
-  }, 2000);
-
-  try {
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    const res = await fetch(`${API_URL}/process`, {
-      method: 'POST',
-      body: formData
-    });
-
-    clearInterval(animInterval);
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
-      throw new Error(err.detail || `Server error ${res.status}`);
+  update();
+  const interval = setInterval(() => {
+    s++;
+    if (s < 4) { update(); }
+    else {
+      clearInterval(interval);
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        setView('pipeline');
+        pipelineStages.forEach(p => p.state = 'completed');
+        renderPipelineStages();
+        showToast('Pipeline complete! EDA report ready.', 'success');
+        historyData.unshift({ name:'new_upload.csv', rows:8321, cols:22, nulls:901, outliers:144, score:79, status:'success', date:'2026-03-27 '+new Date().toTimeString().slice(0,5) });
+        renderRecentTable();
+        renderHistoryTable(historyData);
+      }, 600);
     }
-
-    const data = await res.json();
-    const stats = data.outputs || {};
-
-    // Update overlay to 100%
-    document.getElementById('overlay-progress').style.width = '100%';
-    document.getElementById('processing-title').textContent = 'Pipeline Complete!';
-    document.getElementById('overlay-label').textContent = 'All 4 stages finished successfully.';
-
-    setTimeout(() => {
-      overlay.classList.add('hidden');
-      setView('pipeline');
-      pipelineStages.forEach(p => p.state = 'completed');
-      renderPipelineStages();
-      showToast('Pipeline complete! EDA report ready.', 'success');
-
-      // Add real entry to history
-      const now = new Date().toLocaleString('sv-SE').slice(0,16).replace('T',' ');
-      historyData.unshift({
-        name: selectedFile.name,
-        rows: data.summary?.rows || 0,
-        cols: data.summary?.columns || 0,
-        nulls: data.summary?.nulls_handled || 0,
-        outliers: data.summary?.outliers_corrected || 0,
-        score: data.summary?.health_score || 0,
-        status: 'success',
-        date: now,
-        outputs: stats
-      });
-      renderRecentTable();
-      renderHistoryTable(historyData);
-      renderReports();
-      selectedFile = null;
-    }, 800);
-
-  } catch (err) {
-    clearInterval(animInterval);
-    overlay.classList.add('hidden');
-    showToast(`Upload failed: ${err.message}`, 'error');
-    console.error('Pipeline error:', err);
-  }
+  }, 1600);
 }
 
 /* ══════════════════════════
